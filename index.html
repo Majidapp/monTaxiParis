@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>MonTaxiParis</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCq1MbGZzKdX_dEM7as6Ru7XuAW4nZHL30&libraries=places"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col justify-center items-center p-4">
+  <div class="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-xl">
+    <h1 class="text-3xl font-bold text-center mb-6">MonTaxiParis</h1>
+
+    <div class="mb-4">
+      <label for="adresseDepart" class="block mb-1">Adresse de départ</label>
+      <input id="adresseDepart" type="text" placeholder="Ex : 10 rue de Rivoli"
+        class="w-full p-3 rounded bg-gray-700 text-white border border-gray-600" />
+    </div>
+
+    <div class="mb-4">
+      <label for="adresseArrivee" class="block mb-1">Adresse d’arrivée</label>
+      <input id="adresseArrivee" type="text" placeholder="Ex : Aéroport CDG"
+        class="w-full p-3 rounded bg-gray-700 text-white border border-gray-600" />
+    </div>
+
+    <div class="text-center">
+      <button onclick="calculerPrix()" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded text-white font-bold">
+        Calculer le prix
+      </button>
+    </div>
+
+    <div id="resultat" class="mt-6 text-center text-lg text-blue-300 font-medium">
+      Entrez les deux adresses pour estimer le prix.
+    </div>
+  </div>
+
+  <a href="https://wa.me/33625045308" target="_blank"
+     class="mt-6 inline-block bg-green-500 hover:bg-green-600 px-6 py-3 rounded text-white font-semibold shadow">
+    📲 Réserver via WhatsApp
+  </a>
+
+  <script>
+    function initAutocomplete() {
+      const depart = document.getElementById("adresseDepart");
+      const arrivee = document.getElementById("adresseArrivee");
+      new google.maps.places.Autocomplete(depart);
+      new google.maps.places.Autocomplete(arrivee);
+    }
+
+    function calculerPrix() {
+      const depart = document.getElementById("adresseDepart").value;
+      const arrivee = document.getElementById("adresseArrivee").value;
+      const result = document.getElementById("resultat");
+
+      if (depart && arrivee) {
+        const service = new google.maps.DistanceMatrixService();
+        service.getDistanceMatrix({
+          origins: [depart],
+          destinations: [arrivee],
+          travelMode: 'DRIVING',
+          unitSystem: google.maps.UnitSystem.METRIC
+        }, (response, status) => {
+          if (status === 'OK') {
+            const element = response.rows[0].elements[0];
+            if (element.status === 'OK') {
+              const distanceKm = element.distance.value / 1000;
+              const duree = element.duration.text;
+              const prix = (distanceKm * 1.5 + 7).toFixed(2);
+              result.innerHTML = `📍 Distance : ${distanceKm.toFixed(2)} km<br>
+                                  ⏱️ Durée : ${duree}<br>
+                                  💶 Prix estimé : <strong class="text-green-400">${prix} €</strong>`;
+            } else {
+              result.innerText = "Adresse non reconnue.";
+            }
+          } else {
+            result.innerText = "Erreur API Google.";
+          }
+        });
+      } else {
+        result.innerText = "Veuillez remplir les deux adresses.";
+      }
+    }
+
+    window.onload = initAutocomplete;
+  </script>
+</body>
+</html>
