@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>MonTaxiParis</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCq1MbGZzKdX_dEM7as6Ru7XuAW4nZHL30&libraries=places"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col justify-center items-center p-6">
+  <div class="bg-gray-800 p-6 rounded-lg shadow max-w-xl w-full">
+    <h1 class="text-3xl font-bold text-center mb-6">MonTaxiParis</h1>
+    <div class="mb-4">
+      <label class="block mb-2">Adresse de départ</label>
+      <input id="adresseDepart" class="w-full p-3 rounded bg-gray-700 border border-gray-600 text-white" placeholder="Ex: 10 rue de Rivoli, Paris">
+    </div>
+    <div class="mb-4">
+      <label class="block mb-2">Adresse d’arrivée</label>
+      <input id="adresseArrivee" class="w-full p-3 rounded bg-gray-700 border border-gray-600 text-white" placeholder="Ex: Aéroport Charles de Gaulle">
+    </div>
+    <button onclick="calculerPrix()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded w-full">Calculer le prix</button>
+    <div id="resultat" class="mt-6 text-center text-blue-300">Entrez les deux adresses pour estimer le prix.</div>
+  </div>
+  <a href="https://wa.me/33625045308" target="_blank" class="mt-6 inline-block bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded shadow">
+    📲 Réserver via WhatsApp
+  </a>
+
+<script>
+function initAutocomplete() {
+  new google.maps.places.Autocomplete(document.getElementById("adresseDepart"));
+  new google.maps.places.Autocomplete(document.getElementById("adresseArrivee"));
+}
+
+function calculerPrix() {
+  const depart = document.getElementById("adresseDepart").value;
+  const arrivee = document.getElementById("adresseArrivee").value;
+  const resultEl = document.getElementById("resultat");
+
+  if (depart && arrivee) {
+    const service = new google.maps.DistanceMatrixService();
+    service.getDistanceMatrix({
+      origins: [depart],
+      destinations: [arrivee],
+      travelMode: 'DRIVING',
+      unitSystem: google.maps.UnitSystem.METRIC
+    }, function(response, status) {
+      if (status === 'OK') {
+        const element = response.rows[0].elements[0];
+        if (element.status === 'OK') {
+          const distanceKm = element.distance.value / 1000;
+          const duree = element.duration.text;
+          const prix = (distanceKm * 1.5 + 7).toFixed(2);
+          resultEl.innerHTML = "📍 <strong>Distance</strong> : " + distanceKm.toFixed(2) + " km<br>" +
+                               "⏱️ <strong>Durée</strong> : " + duree + "<br>" +
+                               "💶 <strong>Prix estimé</strong> : <span class='text-green-400'>" + prix + " €</span>";
+        } else {
+          resultEl.innerText = "Impossible de calculer la distance.";
+        }
+      } else {
+        resultEl.innerText = "Erreur avec l'API Google.";
+      }
+    });
+  } else {
+    resultEl.innerText = "Veuillez remplir les deux adresses.";
+  }
+}
+
+window.onload = initAutocomplete;
+</script>
+</body>
+</html>
